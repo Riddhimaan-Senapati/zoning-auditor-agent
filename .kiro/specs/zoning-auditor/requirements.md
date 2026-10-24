@@ -219,6 +219,7 @@ It is built solo in 12 hours at Hackachusetts 2026 (Civic action track), with on
 2. THE Eval_Runner SHALL report every eval in design §9: held-out city errors, dev city errors, extraction accuracy, verification funnel, planted contradictions, false alarms on clean text, cross-reference accuracy, quote faithfulness, ambiguities, per-prompt datasets, spend, and comparison faithfulness.
 3. THE Eval_Runner SHALL label the dev city-errors row "development set: prompts were tuned against this".
 4. WHEN matching a Finding to a ground-truth entry, THE Eval_Runner SHALL require a verified Quote that overlaps the entry's `pre_text` in the same article, plus a type that fits the entry's class.
+5. THE Eval_Runner SHALL count city errors the way the city's correction summary does: one error per summary line item (`summary_item`), not one per repeated instance. An error counts as found WHEN at least one of its in-scope instances is matched. Instance counts SHALL be reported alongside, never instead.
 
 ### Requirement 17: Held-out isolation
 

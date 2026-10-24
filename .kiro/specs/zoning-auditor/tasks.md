@@ -61,6 +61,7 @@ Line budget: about 2,300 lines of Python in `src/` plus about 600 lines of TypeS
 
 - [ ] 2. Cross-references, deterministic (1:00–2:15)
   - [ ] 2.1 Ingest saved Municode HTML into Sections and Tables (`ingest.py`)
+    - First, `auditor check-pages data/corpus/current data/corpus/reference` (done): fails with a reload hint when a page saved as "Webpage, Complete" holds only the JavaScript shell, i.e. too little visible text or fewer than 5 distinct section numbers of its article (TOC: fewer than 20 articles)
     - _Requirements: 2.1, 2.2, 2.5, 21.1_
   - [x] 2.2 Reference grammar (`xrefs.py`), tested on the real strings from the April 2025 redline
     - _Requirements: 2.3_
@@ -77,7 +78,7 @@ Line budget: about 2,300 lines of Python in `src/` plus about 600 lines of TypeS
   - [x] 2.7 Deterministic xref candidates (`find_xrefs.py`, deterministic part)
     - _Requirements: 6.3_
   - [ ] 2.8 Checkpoint
-    - Gate: `auditor run pre2025 --only xref --no-model` prints "k of 26" against the Dev_Key
+    - Gate: `auditor run pre2025 --only xref --no-model` prints "k of 7 errors (m of 30 instances)" against the Dev_Key
     - Reviewer: spot-check 5 Dev_Key entries against the redline PDF
     - Review: about 500 lines; read `resolve.py` closely
 

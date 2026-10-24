@@ -647,8 +647,8 @@ One command produces `evals/results.md`: a single table that leads with counts. 
 
 | Eval | Input | Measure | Labeler |
 |---|---|---|---|
-| **City documented errors, held-out (headline)** | sealed folder (§9.2): pre-correction text of every article the July 2026 round touches | instances found / in-scope instances; line items found / in-scope line items; run **once**, at the frozen commit | automatic match against the sealed key |
-| City documented errors, dev | `pre2025` corpus | instances found / in-scope instances; line items found / 7 (5 from 53, 2 from 65); per row of §2. Labeled "development set: prompts were tuned against this" | automatic (§9.1) |
+| **City documented errors, held-out (headline)** | sealed folder (§9.2): pre-correction text of every article the July 2026 round touches | **errors found / in-scope errors**, counted per city summary line item; instances found / in-scope instances alongside; run **once**, at the frozen commit | automatic match against the sealed key |
+| City documented errors, dev | `pre2025` corpus | **errors found / 7** (5 in Article 53, 2 in Article 65), counted per city summary line item; instances found / 30 alongside (26 in 53, 4 in 65); per row of §2. Labeled "development set: prompts were tuned against this" | automatic (§9.1) |
 | Extraction accuracy | stratified sample of 40 rules (20 table, 20 prose) from `current` | per field: value, unit, district, use, conditions; share `needs_review` | you |
 | Verification funnel | every run | per type: candidates, quote-passed, upheld, reported | automatic |
 | Planted contradictions | planted folder (§9.3) | recall = plants hit / 12, broken down by difficulty; precision = (plant hits + non-plant findings judged real) / reported contradictions | automatic + you for non-plant |
@@ -667,6 +667,8 @@ Order matters. Extraction accuracy is labeled at task 3, before any contradictio
 `evals/ground_truth/city_2025_04.yaml` has one entry per instance in §2. Each entry gives the article, `section_id`, `pre_text`, `post_text`, class, `in_scope`, summary item, and redline page. The implementer drafts it from the April 2025 redline at task 2.
 
 You spot-check 5 entries, plus every entry the auditor misses. A miss is either an auditor error or a key error, and checking misses is the cheapest way to tell which.
+
+**Counting.** The headline unit is one city error, meaning one summary line item (`summary_item`), not one repeated instance. For example, the 16 renumbered footnote references in Tables H–M are one error. An error is found when at least one of its in-scope instances is matched. Instances are reported alongside. The April 2025 dev key has 7 in-scope errors (5 in Article 53, 2 in Article 65) across 30 instances, plus 2 out-of-scope TA 454 errors.
 
 A finding **matches** an entry if one of its verified quotes overlaps `pre_text` (after `quotes.normalize`), the quote is in the same article, and the finding type fits the class. `section_id` is informational; matching does not depend on it, so the separate session doesn't need our exact ID conventions (§9.2).
 

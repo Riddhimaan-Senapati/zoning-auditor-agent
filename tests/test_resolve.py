@@ -143,7 +143,13 @@ def test_definition_mismatch_and_its_control():
     assert _statuses(xrefs) == [('("EBR-3") Subdistricts. EBR-2', "definition_mismatch"),
                                 ("(“EBR-4”) Subdistricts. EBR-4", "ok")]
     assert xrefs[0].resolution.detail == (
-        "Section 53-4 defines EBR-3 Subdistricts, but the paragraph that follows regulates EBR-2.")
+        "Section 53-4 defines EBR-3, but the paragraph that follows regulates EBR-2.")
+
+
+def test_definition_mismatch_also_reads_district_headings():
+    xrefs = _run([_sec("26-2", text='Squares + Streets 2 ("S2") Districts. S1 Districts allow mixed use.')],
+                 articles=("26",))
+    assert _statuses(xrefs) == [('("S2") Districts. S1', "definition_mismatch")]
 
 
 def test_use_table_rows_must_be_defined_terms():

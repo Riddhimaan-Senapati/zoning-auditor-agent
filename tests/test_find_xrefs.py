@@ -30,7 +30,7 @@ def _location(c) -> str:
 def test_mini53_candidates():
     assert [(c.payload["status"], _location(c), c.claim) for c in candidates(_xrefs())] == [
         ("definition_mismatch", "53-4.1",
-         "Section 53-4.1 defines EBR-3 Subdistricts, but the paragraph that follows regulates EBR-4."),
+         "Section 53-4.1 defines EBR-3, but the paragraph that follows regulates EBR-4."),
         ("self_mismatch", "53-29.4", 'Section 53-29.4 says "this Section 53-27", but it sits in Section 53-29.4.'),
         ("title_mismatch", "53-29.4",
          'Section 53-29.4 cites Section 53-8 as "Waterfront Yard Area Requirements", but Section 53-8 is '

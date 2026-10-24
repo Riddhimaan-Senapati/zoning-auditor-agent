@@ -32,7 +32,7 @@ with (Path(__file__).resolve().parents[2] / "config" / "resolve.toml").open("rb"
 
 _TABLE_ID = re.compile(r"^\d+[A-Z]*:Table([0-9A-Z]+)(?::fn(\w+))?$")
 _HEADER_MARK = re.compile(r"\((\d+)\)")
-_DEFINES = re.compile(rf'\(["“]({DISTRICT})["”]\)\s*Subdistricts?\.\s*({DISTRICT})\b')
+_DEFINES = re.compile(rf'\(["“]({DISTRICT})["”]\)\s*(?:Sub)?[Dd]istricts?\.\s*({DISTRICT})\b')
 
 Headings = Callable[[str], dict[str, str]]
 
@@ -206,10 +206,10 @@ def _definitions(section: Section) -> list[XRef]:
         defined, used = m[1], m[2]
         quote = TextQuote(section_id=section.id, text=m[0], span=m.span())
         if used != defined and family(used) == family(defined):
-            res = _r("definition_mismatch", f"{_where(section.id)} defines {defined} Subdistricts, but the "
-                     f"paragraph that follows regulates {used}.", section.id)
+            res = _r("definition_mismatch", f"{_where(section.id)} defines {defined}, but the paragraph that "
+                     f"follows regulates {used}.", section.id)
         else:
-            res = _r("ok", f"{_where(section.id)} defines {defined} Subdistricts.", section.id)
+            res = _r("ok", f"{_where(section.id)} defines {defined}.", section.id)
         out.append(XRef(quote=quote, resolution=res))
     return out
 
