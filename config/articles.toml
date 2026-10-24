@@ -1,0 +1,18 @@
+# Per-article inputs to resolve.resolve_corpus (design §5.3): the facts resolution cannot
+# read off a single section. One [article.<N>] table per audited article. Real articles get
+# filled in after HTML ingest; article 53 is drawn from the mini53 fixture (tests/fixtures/mini53).
+#
+# established     district codes the article establishes (design §5.3(e), (j))
+# use_tables      tables whose row labels must be defined use terms (§5.3(i))
+# defined_terms   use terms the code defines, against which use_tables rows are checked
+# [article.<N>.table_sections]  table id -> the section it sits under (§5.3(g))
+
+[article.53]
+established = ["EBR-2.5", "EBR-3", "EBR-4", "EBR-5"]
+use_tables = ["53:TableA"]
+defined_terms = ["Single-family dwelling", "Accessory Child Care Home"]
+
+[article.53.table_sections]
+"53:TableH" = "53-4"
+"53:TableA" = "53-4"
+"53:Table2" = "53-21"

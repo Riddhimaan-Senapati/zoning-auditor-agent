@@ -88,11 +88,13 @@ class Tools:
         return out[:k]
 
     def get_rules(self, district: str | None = None, use: str | None = None,
-                  item: str | None = None) -> list[dict]:
-        return [r.model_dump(mode="json") for r in self._rules
-                if (district is None or r.district == district)
-                and (use is None or r.use == use)
-                and (item is None or r.item == item)]
+                  item: str | None = None) -> dict:
+        # Agents sometimes send "null" or "" for an unused filter; an empty list as the whole
+        # tool result is rejected by the MCP adapter, hence the wrapping dict.
+        wanted = {k: v for k, v in (("district", district), ("use", use), ("item", item))
+                  if v not in (None, "", "null")}
+        return {"rules": [r.model_dump(mode="json") for r in self._rules
+                          if all(getattr(r, k) == v for k, v in wanted.items())]}
 
     def get_definition(self, term: str) -> dict | None:
         """The Article 2 section whose heading or text starts by defining `term`."""

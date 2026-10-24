@@ -162,14 +162,15 @@ def _rules_tools(tmp_path) -> Tools:
 
 
 def test_get_rules_with_no_rules_file_is_empty(tools: Tools):
-    assert tools.get_rules() == []
+    assert tools.get_rules() == {"rules": []}
 
 
 def test_get_rules_filters_by_district_use_and_item(tmp_path):
     tools = _rules_tools(tmp_path)
-    got = tools.get_rules(item="building_height_ft")
+    got = tools.get_rules(item="building_height_ft")["rules"]
     assert [r["id"] for r in got] == ["r1", "r2", "r4"]
-    assert tools.get_rules(district="EBR-4") == [
+    assert tools.get_rules(district="null", item="building_height_ft")["rules"] == got
+    assert tools.get_rules(district="EBR-4")["rules"] == [
         {
             "id": "r3",
             "district": "EBR-4",

@@ -111,24 +111,24 @@ Line budget: about 2,300 lines of Python in `src/` plus about 600 lines of TypeS
     - Review: about 500 lines; read `agents.py` closely
 
 - [ ] 4. Contradiction finders plus skeptics (4:00–5:30)
-  - [ ] 4.1 Structured contradiction finder (`find_contradictions.py`, structured part)
+  - [x] 4.1 Structured contradiction finder (`find_contradictions.py`, structured part)
     - _Requirements: 5.1_
-  - [ ] 4.2 Model contradiction finder
+  - [x] 4.2 Model contradiction finder
     - Neighborhood retrieval, at most 5 Sections per call, each unordered set examined once
     - _Requirements: 5.2, 5.3_
-  - [ ] 4.3 Verification (`verify.py`): the quote gate plus `skeptic_contradiction` and `skeptic_xref`
+  - [x] 4.3 Verification (`verify.py`): the quote gate plus `skeptic_contradiction` and `skeptic_xref`
     - _Requirements: 4.2, 4.4, 5.4, 6.4, 8.1, 8.2, 8.3, 8.4, 8.5_
-  - [ ] 4.4 `judge_xref` for `needs_judgment` references
+  - [x] 4.4 `judge_xref` for `needs_judgment` references
     - Includes the agency-name extractor fed by `data/agency_renames.csv`
     - _Requirements: 6.5, 2.3_
-  - [ ] 4.5 Findings store, trace, and funnel (`findings.py`)
+  - [x] 4.5 Findings store, trace, and funnel (`findings.py`)
     - _Requirements: 9.1, 9.2, 9.3_
-  - [ ] 4.6 Property tests for dedupe, the funnel, and no-quote-no-record
+  - [x] 4.6 Property tests for dedupe, the funnel, and no-quote-no-record
     - **Property 2: No quote, no record**
     - **Property 3: Dedupe is order-independent and idempotent**
     - **Property 4: The funnel is monotone and trace-derived**
     - **Validates: Requirements 3.4, 4.2, 4.3, 8.4, 9.1, 9.3**
-  - [ ] 4.7 Neutrality lint (`neutrality.py`)
+  - [x] 4.7 Neutrality lint (`neutrality.py`)
     - _Requirements: 1.4, 1.5_
   - [ ] 4.8 Prompt sets for `find_contradiction`, `judge_xref`, `skeptic_contradiction`, and `skeptic_xref` (about 10 cases each)
     - _Requirements: 19.1_

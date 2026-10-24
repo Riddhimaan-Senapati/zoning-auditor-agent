@@ -144,6 +144,9 @@ class CachedModel(Model):
 
     def generate(self, messages, stop_sequences=None, response_format=None,
                  tools_to_call_from=None, **kwargs) -> ChatMessage:
+        if tools_to_call_from:
+            # smolagents sends "required", which Anthropic models on OpenRouter reject (HTTP 400).
+            kwargs.setdefault("tool_choice", "auto")
         try:
             return self._generate(messages, stop_sequences, response_format, tools_to_call_from, kwargs)
         except Exception as e:

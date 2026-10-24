@@ -434,6 +434,8 @@ As built in task 3 (authoritative over the sketch above):
 - `AUDITOR_RUNS_ROOT` (default `runs/`) and `AUDITOR_CACHE_DIR` (default `llm_cache/`) are settings. A run dir outside the runs root is refused, so the day cap always sums every run.
 - Each agent run appends one `TraceEvent` to `run_dir/trace.jsonl`, with the tool calls, their arguments, and their outputs (truncated).
 - The MCP server process gets only the environment it needs, not the API key.
+- `CachedModel` sends `tool_choice: "auto"`. smolagents defaults to `"required"`, which Anthropic models on OpenRouter reject with HTTP 400 (measured).
+- `auditor run` (`pipeline.py`) runs the whole harness on a build dir and, with `--key`, prints "k of N errors (m of M instances)". Per-article inputs to resolution (established districts, table sections, defined terms, use tables) live in `config/articles.toml`.
 - The pinned stack is mcp 1.30.0 with mcpadapt 0.1.20. mcpadapt still imports the mcp 1.x client name, so mcp 2.x breaks smolagents' MCP tools.
 
 Model tiers. Each role has a fixed tier in a `ROLE_TIER` dict, so swapping a model means changing one env var:

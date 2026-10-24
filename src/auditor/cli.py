@@ -1,10 +1,29 @@
 import argparse
+import os
 import sys
 from pathlib import Path
 
 from auditor.label import import_labels, run_label
+from auditor.pipeline import run as run_pipeline
 from auditor.prompt_eval import run_prompt_eval
 from auditor.saved_pages import check_saved_dir
+
+_REPO = Path(__file__).resolve().parents[2]
+
+
+def _runs_root(override: Path | None) -> Path:
+    return override or Path(os.environ.get("AUDITOR_RUNS_ROOT", _REPO / "runs"))
+
+
+def _run(args: argparse.Namespace) -> None:
+    result = run_pipeline(args.build_dir, args.name, only=args.only, no_model=args.no_model,
+                          key=args.key, runs_root=_runs_root(args.runs_root))
+    for type_ in sorted(result.per_type):
+        f = result.per_type[type_]
+        print(f"{type_}: {f['candidates']} candidates -> {f['quote_passed']} quote-passed "
+              f"-> {f['upheld']} upheld -> {f['reported']} reported")
+    if result.eval_line is not None:
+        print(result.eval_line)
 
 
 def _check_pages(args: argparse.Namespace) -> None:
@@ -35,6 +54,16 @@ def main(argv: list[str] | None = None) -> None:
         description="Boston Zoning Code Auditor. Independent prototype, not a City of Boston service.",
     )
     commands = parser.add_subparsers(dest="command", required=True)
+
+    run = commands.add_parser("run", help="audit a built corpus end to end and print the funnel")
+    run.add_argument("--build-dir", required=True, type=Path, help="dir holding sections.jsonl/tables.jsonl")
+    run.add_argument("--name", required=True, help="corpus name; the run is written under runs/<name>/")
+    run.add_argument("--only", choices=("xref", "contradiction"), default=None,
+                     help="run only one finder family (default: both)")
+    run.add_argument("--no-model", action="store_true", help="skip every model call (prose, model finders, skeptics)")
+    run.add_argument("--key", type=Path, default=None, help="ground-truth YAML; prints the §9.1 eval line")
+    run.add_argument("--runs-root", type=Path, default=None, help="override AUDITOR_RUNS_ROOT")
+    run.set_defaults(run=_run)
 
     check = commands.add_parser("check-pages", help="fail if a saved page holds no real code text")
     check.add_argument("dirs", nargs="+", type=Path)
