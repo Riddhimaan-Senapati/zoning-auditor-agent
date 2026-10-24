@@ -88,7 +88,7 @@ The wrong-article class (the "67-32" error in Article 68) is still covered by de
 | Pre-correction text, held-out set | Built during the day by the separate session into `../zoning-auditor-sealed/` (§9.2) | Held-out eval | bostonplans.org |
 | April 2025 summary + redline PDFs | Manual download (done once for this spec) | Dev ground truth | public |
 | Violations, permits | `tools/fetch_open_data.py` pages through the brief's `datastore_search_sql` endpoints for all rows since 2024-01-01 and writes CSVs to `data/raw/` once. It selects only the brief's columns, so no street addresses are pulled. The brief's `LIMIT 100` is replaced by paging, because 100 rows is too few for per-work-type counts. | Feature 4 | Analyze Boston open data. License noted from the dataset page at download. |
-| Somerville SZO | You save the relevant articles by hand from the encodeplus viewer. The report shows only quoted excerpts, with a citation and a link; full text is never republished. | Feature 5 | You check encodeplus's terms when saving. If they prohibit saving and quoting, I stop and ask: no second Massachusetts city has been agreed. |
+| Somerville SZO | You save the relevant articles by hand from the encodeplus viewer. The report shows only quoted excerpts, with a citation and a link; full text is never republished. | Feature 5 | You check encodeplus's terms when saving. If they prohibit saving and quoting, use Cambridge as the Massachusetts city (decided). |
 | Out-of-state city | **Minneapolis (Title 20) by default**, saved by hand from Municode. It is the tie-break pick, and I infer its saved HTML will reuse the Boston ingest without a new parser. Portland, OR (Title 33) is the alternative. Excerpts only, cited and linked, as for Somerville. | Feature 5 | If the chosen city's terms prohibit saving and quoting, switch to the other city (decided). |
 | Boston.gov / Mass.gov pages | Linked from the report only, never copied | Context | n/a |
 
@@ -157,7 +157,6 @@ runs/<corpus>/<run_id>/        # local only
   report/                      # built static site for this run (copied from report/out)
   spend.json                   # tokens + USD per role and model, written as the run goes
 llm_cache/                     # local only; the offline demo replays from it on this machine
-config/prices.toml             # USD per 1M input/output tokens per model id, entered by hand
 evals/
   ground_truth/city_2025_04.yaml
   prompts/<role>.jsonl         # ~10 cases per role (§9.4)
@@ -179,7 +178,7 @@ tests/
 
 ### 5. Module layout and interfaces
 
-Python 3.12, managed with `uv`. Dependencies, all pinned to exact versions at task 1: `smolagents` (with its MCP and LiteLLM extras), `mcp`, `pydantic`, `beautifulsoup4`, `pdfplumber` (tools only), `pytest`, `hypothesis` (dev only, for the Correctness Properties). Search uses SQLite FTS5 from the stdlib; M0 confirms that FTS5 is compiled into the local Python. CLI uses `argparse`.
+Python 3.12, managed with `uv`. Dependencies, all pinned to exact versions at task 1: `smolagents` (with its MCP and OpenAI extras; models are reached through OpenRouter's OpenAI-compatible API), `mcp`, `pydantic`, `beautifulsoup4`, `pdfplumber` (tools only), `pytest`, `hypothesis` (dev only, for the Correctness Properties). Search uses SQLite FTS5 from the stdlib; M0 confirms that FTS5 is compiled into the local Python. CLI uses `argparse`.
 
 The report uses Node (v24.18.0 is installed locally, measured) and npm, with exact versions pinned in `report/package.json`: `next`, `react`, `react-dom`, `typescript`, `json-schema-to-typescript`. Context7 lists v16.2.9 as the newest indexed Next.js docs. Task 1 pins the current stable release from npm and reads the docs for that version. No UI kit and no Tailwind; styling is CSS Modules.
 
@@ -211,6 +210,14 @@ src/auditor/
 ```
 
 #### 5.1 Core types (`models.py`)
+
+`src/auditor/models.py` is authoritative. It differs from the sketch below in these ways, all from the Task 1 review:
+- **`SectionId` is validated** against the canonical id pattern; `ids.py` holds only `slug`.
+- **`TextQuote.span: tuple[int, int] | None`** replaces `start`/`end`, and `CellQuote.position: tuple[int, int] | None` records (row, column). Both are set only by the quote checker. `is_verified(q)` reads them.
+- **`Rule.needs_review` is derived** from `review_reason`. Item `other`, and numeric rules missing a value or unit, must carry a reason. A rule's quote must be verified.
+- **`Verdict.quote_check` is gone.** The quote gate failed exactly when `quote_failures` is non-empty, and then `skeptic` is `not_run`. Reconciling quotes must be verified.
+- **`Finding` enforces reportability.** It needs at least one verified quote and a verdict of `upheld` or `skipped`. `readings` are present for ambiguities and only for them, on both `Finding` and `Candidate`.
+- **`Table` must be rectangular**, with unique column headers and row labels. `Corpus` rejects duplicate ids.
 
 ```python
 SectionId = NewType("SectionId", str)   # "53-29.4", "53:TableH", "53:TableH:fn3"
@@ -347,7 +354,7 @@ class TraceEvent(BaseModel):         # one line per stage transition in trace.js
 
 ```python
 def normalize(s: str) -> str          # NFKC (folds ligatures like "ﬁ"), curly→straight quotes,
-                                      # en/em dash→"-", collapse whitespace, strip. Nothing else.
+                                      # hyphen/dash variants U+2010–U+2014, U+2212 →"-", collapse whitespace, strip.
 def verify_text(q: TextQuote, corpus: Corpus) -> TextQuote | QuoteError   # sets start/end
 def verify_cell(q: CellQuote, corpus: Corpus) -> CellQuote | QuoteError
 ```
@@ -400,7 +407,8 @@ Exports: `export/rules.csv` and `export/rules.json`. The CSV has one row per rul
 ```python
 class CachedModel(Model):        # wraps any smolagents Model; caches generate() on disk; meters spend
 def make_model(tier: Literal["judge", "extract"]) -> Model
-    # env: AUDITOR_MODEL_JUDGE, AUDITOR_MODEL_EXTRACT (LiteLLM ids); AUDITOR_OFFLINE=1 → cache-only, miss = error
+    # smolagents OpenAIModel(api_base="https://openrouter.ai/api/v1", api_key=OPENROUTER_API_KEY)
+    # env: AUDITOR_MODEL_JUDGE, AUDITOR_MODEL_EXTRACT (OpenRouter ids); AUDITOR_OFFLINE=1 → cache-only, miss = error
 def run_agent(role: str, task: str, inputs: dict, out: type[T], max_steps: int = 6) -> T | AgentFailure
 
 class BudgetExceeded(Exception)  # raised before a live call that would start past the cap
@@ -409,10 +417,10 @@ class BudgetExceeded(Exception)  # raised before a live call that would start pa
 Model tiers. Each role has a fixed tier in a `ROLE_TIER` dict, so swapping a model means changing one env var:
 - `extract`: `extract_prose` and `compare_match`. Default is a Haiku-class model.
 - `judge`: every finder, every skeptic, `judge_xref`, and `compare_support`. Default is a Sonnet-class model.
-- Exact model ids are set in `.env.example` at task 1, after checking what the provider currently offers.
+- Model ids (decided): `anthropic/claude-haiku-5.5` for `extract` and `anthropic/claude-sonnet-5.5` for `judge`. These are OpenRouter ids, checked against OpenRouter's public models list (both support tool calling). Set in `.env.example` at task 1.
 
 Spend:
-- `CachedModel` reads token usage from each live response and prices it with `config/prices.toml`.
+- `CachedModel` reads `usage.cost` from each live response. OpenRouter returns the cost charged in credits on every non-streaming response, with no extra parameters (OpenRouter usage-accounting docs, read via Context7). smolagents keeps the raw response on `ChatMessage.raw` (checked in smolagents 1.26.0 source). There is no local price table. Agents run non-streaming so the cost is always present; a live response without `usage.cost` is an error.
 - It appends `{role, model, input_tokens, output_tokens, usd, cached: bool}` to `runs/…/spend.json`.
 - Cache hits are logged at $0, so a replayed run shows its true cost: zero.
 - `AUDITOR_BUDGET_USD=20` is a hard cap per run, and `AUDITOR_BUDGET_TOTAL_USD=100` is a cap for the day, on your current API account, summed from every `spend.json`. On the next live call past either cap, `CachedModel` raises `BudgetExceeded`. The harness then stops the run, writes partial outputs, and marks the funnel as truncated. Nothing silently skips work.
@@ -666,7 +674,7 @@ heldout/
 - **`key.yaml` entries:** `id, article, location` (human-readable, e.g. "Table H fn 3"), `section_id` (best effort, e.g. `53-29.4` or `53:TableH:fn3`), `pre_text` (exact string from the corpus file), `post_text`, `class`, `in_scope`, `summary_item`, and `redline_page`.
 - **`class`** is one of: `xref_missing`, `xref_title_mismatch`, `xref_self_mismatch`, `xref_wrong_article`, `undefined_term_or_district`, `footnote_integrity`, `contradiction`, `ambiguity`, `out_of_scope`.
 - **`in_scope`** follows §2: false for formatting fixes and for errors visible only by comparing articles that aren't in the held-out corpus.
-- **Self-check before writing `READY`.** Every `pre_text` occurs exactly once in its article file after normalization: NFKC, curly→straight quotes, en/em dash→"-", whitespace collapsed. The session records any failures in the manifest and fixes them.
+- **Self-check before writing `READY`.** Every `pre_text` occurs exactly once in its article file after normalization: NFKC, curly→straight quotes, hyphen and dash variants (U+2010–U+2014, U+2212)→"-", whitespace collapsed. The session records any failures in the manifest and fixes them.
 - **The session also** opens the second summary URL (§1) and records its date in `MANIFEST.json`. If it is a pre-April-2025 round, it tells you so and you add it to the dev set. That is the only fact it reports back.
 - **The session must not** write into the repo or describe the errors to you.
 
@@ -734,7 +742,7 @@ Decided:
 - **Held-out set.** The separate session builds it into `../zoning-auditor-sealed/` to the §9.2 contract. You don't open it until task 10. It runs once at the `heldout-freeze` tag.
 - **Per-prompt sets.** About 10 cases per role, model-drafted, spot-checked (§9.4).
 - **Articles.** 53 + 65, with 68 as fallback (§2).
-- **Models.** Sonnet-class for judging, Haiku-class for extraction (§5.5). Exact ids are set in task 1.
+- **Models.** Through OpenRouter, not LiteLLM: `anthropic/claude-sonnet-5.5` for finders and skeptics, `anthropic/claude-haiku-5.5` for extraction (§5.5). Spend comes from OpenRouter's reported cost.
+- **Massachusetts fallback.** Cambridge, if Somerville's terms prohibit saving and quoting (§3).
 
-Still open:
-1. **Somerville terms.** You check encodeplus's terms when saving. If they prohibit saving and quoting, I'll ask before choosing another Massachusetts city.
+Still open: none.

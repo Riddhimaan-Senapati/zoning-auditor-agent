@@ -22,33 +22,33 @@ Line budget: about 2,300 lines of Python in `src/` plus about 600 lines of TypeS
 ## Tasks
 
 - [ ] 1. Setup and the quote checker (0:00–1:00)
-  - [ ] 1.1 Scaffold the Python project
-    - `pyproject.toml` with exact pins (smolagents with MCP and LiteLLM extras, mcp, pydantic, beautifulsoup4, pdfplumber, pytest, hypothesis); `uv.lock` committed
+  - [x] 1.1 Scaffold the Python project
+    - `pyproject.toml` with exact pins (smolagents with MCP and OpenAI extras, mcp, pydantic, beautifulsoup4, pdfplumber, pytest, hypothesis); `uv.lock` committed
     - Confirm SQLite FTS5 in the local Python
-    - `cli.py` skeleton with subcommands: `index`, `run`, `label`, `report`, `serve`, `schema`, `eval`, `prompt-eval`, `import-labels`
-    - `.env.example` with `AUDITOR_MODEL_JUDGE`, `AUDITOR_MODEL_EXTRACT`, `AUDITOR_OFFLINE`, `AUDITOR_BUDGET_USD=20`, `AUDITOR_BUDGET_TOTAL_USD=100`; `config/prices.toml`
-    - `.gitignore` entries for every local-only path in design §4.3
+    - `cli.py` skeleton; each subcommand (`index`, `run`, `label`, `report`, `serve`, `schema`, `eval`, `prompt-eval`, `import-labels`) is added by the task that implements it
+    - `.env.example` with `OPENROUTER_API_KEY`, `AUDITOR_MODEL_JUDGE=anthropic/claude-sonnet-5.5`, `AUDITOR_MODEL_EXTRACT=anthropic/claude-haiku-5.5`, `AUDITOR_OFFLINE`, `AUDITOR_BUDGET_USD=20`, `AUDITOR_BUDGET_TOTAL_USD=100`
+    - `.gitignore` entries for every local-only path in design §4.3; `.kiro/` stays tracked
     - _Requirements: 11.4, 12.3, 21.2_
-  - [ ] 1.2 Write the shared types and the quote checker (`models.py`, `ids.py`, `quotes.py`, `corpus.py`)
+  - [x] 1.2 Write the shared types and the quote checker (`models.py`, `ids.py`, `quotes.py`, `corpus.py`)
     - All types in design §5.1, including the `Quote` discriminated union and the `Finding` validator for a non-empty quote list
     - `ids.parse`, `ids.format`, `ids.slug`
     - `normalize`, `verify_text`, `verify_cell`
     - **Blocking review.** Every later file and the report types depend on these.
     - _Requirements: 4.1, 4.3_
-  - [ ] 1.3 Property test for quote round trip
+  - [x] 1.3 Property test for quote round trip
     - **Property 1: Quote round trip**
     - **Validates: Requirements 4.1**
   - [ ] 1.4 Fixtures and isolation tests
-    - `tests/fixtures/`: a mini article in the real saved-HTML shape with seeded errors, plus frozen `sections/tables/rules/xrefs.jsonl`
+    - `tests/fixtures/mini53/`: frozen `sections.jsonl` and `tables.jsonl` with seeded errors (done). Still to do: a mini saved-HTML article, trimmed from a real saved Municode page once you have saved one, so `ingest` has a fixture in the true shape
     - Property 6 (no sealed or planted path strings, no case text in prompts)
     - Property 8 (no local-only path tracked by git)
     - **Property 6: Isolation**
     - **Property 8: No full text in git**
     - **Validates: Requirements 17.1, 19.3, 21.2**
-  - [ ] 1.5 Fetch the open data (`tools/fetch_open_data.py`) and run it once
+  - [x] 1.5 Fetch the open data (`tools/fetch_open_data.py`) and run it once
     - Page through the brief's `datastore_search_sql` endpoints for all rows since 2024-01-01, using only the brief's columns; write CSVs to `data/raw/` with the query and download date
     - _Requirements: 10.1, 21.5_
-  - [ ] 1.6 Report scaffold (`report/`)
+  - [x] 1.6 Report scaffold (`report/`)
     - Pin the current stable `next` from npm, plus `react`, `react-dom`, `typescript`, `json-schema-to-typescript`; commit `package-lock.json`
     - `next.config.ts` with `output: 'export'` and `trailingSlash: true`
     - Re-check the static export docs for the pinned version via Context7 (`/vercel/next.js/<version>`)
@@ -83,7 +83,7 @@ Line budget: about 2,300 lines of Python in `src/` plus about 600 lines of TypeS
 
 - [ ] 3. Rule extraction, with the agent runner (2:15–4:00)
   - [ ] 3.1 Agent runner (`agents.py`)
-    - `CachedModel` (disk cache, spend metering, `BudgetExceeded`, offline mode)
+    - `CachedModel` over smolagents `OpenAIModel` pointed at OpenRouter (disk cache, spend from `usage.cost`, `BudgetExceeded`, offline mode); confirm with one live call that `ChatMessage.raw.usage` carries `cost`
     - `make_model(tier)`, `ROLE_TIER`, `run_agent`, which returns the parsed pydantic model or an `AgentFailure`
     - Fixed preamble in `prompts/_preamble.md`
     - _Requirements: 11.1, 11.3, 11.4, 11.5, 12.1, 12.2, 12.3, 13.1, 13.2_

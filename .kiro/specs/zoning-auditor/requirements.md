@@ -23,7 +23,7 @@ It is built solo in 12 hours at Hackachusetts 2026 (Civic action track), with on
 - **Findings_Store**: the component that deduplicates Findings and writes the trace and funnel.
 - **Funnel**: counts per issue type of candidates, quote-passed, upheld, and reported.
 - **Agent_Runner**: the wrapper that runs one smolagents `ToolCallingAgent` with MCP tools and parses its answer.
-- **Spend_Meter**: the part of the Agent_Runner that prices and logs every live model call and enforces caps.
+- **Spend_Meter**: the part of the Agent_Runner that records OpenRouter's reported cost for every live model call and enforces caps.
 - **Report**: the Next.js static site built from one run's `report_data.json`.
 - **Reviewer**: a planning staff member (and, during the hackathon, the developer) using the Report.
 - **Eval_Runner**: `auditor eval`, which writes `evals/results.md`.
@@ -76,7 +76,7 @@ It is built solo in 12 hours at Hackachusetts 2026 (Civic action track), with on
 
 #### Acceptance Criteria
 
-1. THE Quote_Verifier SHALL accept a Quote only if its normalized text is an exact substring of the normalized Section text, or an exact match of the cited table cell. Normalization is NFKC, straight quotes, dash folding, and whitespace collapse, and nothing more.
+1. THE Quote_Verifier SHALL accept a Quote only if its normalized text is an exact substring of the normalized Section text, or an exact match of the cited table cell. Normalization is NFKC, straight quotes, hyphen and dash folding, and whitespace collapse, and nothing more. A quote that starts or ends inside one source character's expansion (for example "f" out of the ligature "ﬁ") SHALL be rejected.
 2. IF any Quote of a Candidate fails verification, THEN THE Auditor SHALL discard the Candidate and record the failing strings in the trace.
 3. THE Auditor SHALL NOT report a Finding with zero Quotes.
 4. THE Skeptic's reconciling Quotes SHALL pass the same verification before they count as evidence.
@@ -158,7 +158,7 @@ It is built solo in 12 hours at Hackachusetts 2026 (Civic action track), with on
 1. THE Agent_Runner SHALL use smolagents `ToolCallingAgent` and SHALL NOT use `CodeAgent`.
 2. THE Agent_Runner SHALL expose tools to agents only through the MCP server in design §5.6.
 3. THE Agent_Runner SHALL parse each agent's final answer into a pydantic model. IF parsing fails, THEN THE Agent_Runner SHALL return an AgentFailure, which the harness records as a rejected Candidate.
-4. THE Agent_Runner SHALL select the model per role from two tiers, `judge` and `extract`, set by environment variables.
+4. THE Agent_Runner SHALL reach models through OpenRouter's OpenAI-compatible API with smolagents `OpenAIModel`, and SHALL select the model per role from two tiers, `judge` and `extract`, set by environment variables.
 5. Every role prompt SHALL include the fixed preamble in design §5.5 and SHALL NOT contain examples from the per-prompt datasets.
 
 ### Requirement 12: Spend metering and caps
@@ -167,7 +167,7 @@ It is built solo in 12 hours at Hackachusetts 2026 (Civic action track), with on
 
 #### Acceptance Criteria
 
-1. WHEN a live model call returns, THE Spend_Meter SHALL append its role, model, input and output tokens, and USD cost to the run's `spend.json`.
+1. WHEN a live model call returns, THE Spend_Meter SHALL append its role, model, input and output tokens, and the cost OpenRouter reports in `usage.cost` to the run's `spend.json`. IF a live response lacks `usage.cost`, THEN THE Spend_Meter SHALL raise an error.
 2. WHEN a call is served from the cache, THE Spend_Meter SHALL log it at $0 with `cached: true`.
 3. IF a live call would start after the per-run cap or the total cap is reached, THEN THE Spend_Meter SHALL raise BudgetExceeded. THE Auditor SHALL then write partial outputs and mark the Funnel as truncated.
 4. THE Eval_Runner SHALL write one spend row per eval run in `results.md`.
@@ -226,7 +226,7 @@ It is built solo in 12 hours at Hackachusetts 2026 (Civic action track), with on
 
 #### Acceptance Criteria
 
-1. THE repository SHALL NOT contain the strings `zoning-auditor-sealed` or `zoning-auditor-planted`. The held-out and planted paths SHALL reach the Auditor only as command-line arguments.
+1. No file outside `.kiro/specs/` SHALL contain the strings `zoning-auditor-sealed` or `zoning-auditor-planted`. The held-out and planted paths SHALL reach the Auditor only as command-line arguments.
 2. WHEN `auditor run --final` is invoked, THE Auditor SHALL refuse to run unless HEAD is exactly the `heldout-freeze` tag, the working tree is clean, and the Sealed_Folder contains `READY`.
 3. WHEN a second `--final` run happens at the same tag, THE Eval_Runner SHALL label its row "post-hoc" and keep the first run as the headline.
 4. THE Separate_Session SHALL build the Sealed_Folder to the contract in design §9.2 and SHALL NOT write into the repository.
