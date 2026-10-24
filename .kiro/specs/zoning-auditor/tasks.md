@@ -83,29 +83,30 @@ Line budget: about 2,300 lines of Python in `src/` plus about 600 lines of TypeS
     - Review: about 500 lines; read `resolve.py` closely
 
 - [ ] 3. Rule extraction, with the agent runner (2:15–4:00)
-  - [ ] 3.1 Agent runner (`agents.py`)
+  - [x] 3.1 Agent runner (`agents.py`)
     - `CachedModel` over smolagents `OpenAIModel` pointed at OpenRouter (disk cache, spend from `usage.cost`, `BudgetExceeded`, offline mode); confirm with one live call that `ChatMessage.raw.usage` carries `cost`
     - `make_model(tier)`, `ROLE_TIER`, `run_agent`, which returns the parsed pydantic model or an `AgentFailure`
     - Fixed preamble in `prompts/_preamble.md`
     - _Requirements: 11.1, 11.3, 11.4, 11.5, 12.1, 12.2, 12.3, 13.1, 13.2_
-  - [ ] 3.2 Read-only MCP server (`mcp_server.py`) with the tools in design §5.6
+  - [x] 3.2 Read-only MCP server (`mcp_server.py`) with the tools in design §5.6
     - _Requirements: 1.3, 11.2_
-  - [ ] 3.3 Property test for read-only tools
+  - [x] 3.3 Property test for read-only tools
     - **Property 5: Tools are read-only**
     - **Validates: Requirements 1.3**
-  - [ ] 3.4 Table rules (`extract_tables.py`, `COLUMN_ITEMS` for Articles 53 and 65)
+  - [x] 3.4 Table rules (`extract_tables.py`, `COLUMN_ITEMS` for Articles 53 and 65)
     - _Requirements: 3.1, 3.2, 3.3_
-  - [ ] 3.5 Prose rules (`extract_prose.py`, `prompts/extract_prose.md`)
+  - [x] 3.5 Prose rules (`extract_prose.py`, `prompts/extract_prose.md`)
     - _Requirements: 3.4, 3.5_
-  - [ ] 3.6 Rule exports (`rules.csv`, `rules.json`, with the self-identification block)
+  - [x] 3.6 Rule exports (`rules.csv`, `rules.json`, with the self-identification block)
     - _Requirements: 1.2, 3.6_
-  - [ ] 3.7 `auditor label` in the terminal, writing the `labels.json` schema
+  - [x] 3.7 `auditor label` in the terminal, writing the `labels.json` schema
     - Needed now because extraction is labeled before the report exists
     - _Requirements: 15.4_
   - [ ] 3.8 `auditor prompt-eval` and the `extract_prose` set (about 10 cases)
+    - `prompt-eval` is built. The case file waits on the saved Articles 53 and 65. Known prompt issue from the live check: Haiku set a review_reason on a fully stated rule
     - _Requirements: 19.1, 19.2_
   - [ ] 3.9 Checkpoint
-    - Gate: `rules.csv` exists for 53 and 65; a second run with `AUDITOR_OFFLINE=1` replays with $0 live spend; `spend.json` is written; the extraction accuracy row is filled
+    - Gate: `rules.csv` exists for 53 and 65; a second run with `AUDITOR_OFFLINE=1` replays with $0 live spend; `spend.jsonl` is written; the extraction accuracy row is filled
     - Reviewer: **label 40 rules** with `auditor label` (20 table, 20 prose, about 25 minutes) before any contradiction work is trusted; spot-check the `extract_prose` set
     - Review: about 500 lines; read `agents.py` closely
 

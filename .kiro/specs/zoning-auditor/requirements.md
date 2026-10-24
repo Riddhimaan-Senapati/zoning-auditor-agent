@@ -167,7 +167,7 @@ It is built solo in 12 hours at Hackachusetts 2026 (Civic action track), with on
 
 #### Acceptance Criteria
 
-1. WHEN a live model call returns, THE Spend_Meter SHALL append its role, model, input and output tokens, and the cost OpenRouter reports in `usage.cost` to the run's `spend.json`. IF a live response lacks `usage.cost`, THEN THE Spend_Meter SHALL raise an error.
+1. WHEN a live model call returns, THE Spend_Meter SHALL append its role, model, input and output tokens, and the cost OpenRouter reports in `usage.cost` to the run's `spend.jsonl`. IF a live response lacks `usage.cost`, THEN THE Spend_Meter SHALL raise an error.
 2. WHEN a call is served from the cache, THE Spend_Meter SHALL log it at $0 with `cached: true`.
 3. IF a live call would start after the per-run cap or the total cap is reached, THEN THE Spend_Meter SHALL raise BudgetExceeded. THE Auditor SHALL then write partial outputs and mark the Funnel as truncated.
 4. THE Eval_Runner SHALL write one spend row per eval run in `results.md`.

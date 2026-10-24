@@ -12,10 +12,14 @@ _SKIP_SKEPTIC = frozenset({
 })
 
 
+def xref_id(x: XRef) -> str:
+    return hashlib.sha256(f"{x.quote.model_dump_json()}|{x.resolution.detail}".encode()).hexdigest()[:16]
+
+
 def candidates(xrefs: list[XRef]) -> list[Candidate]:
     return [
         Candidate(
-            id=hashlib.sha256(f"{x.quote.model_dump_json()}|{x.resolution.detail}".encode()).hexdigest()[:16],
+            id=xref_id(x),
             type="xref",
             origin="deterministic",
             quotes=[x.quote],

@@ -155,7 +155,7 @@ build/<corpus>/                # gitignored, reproducible
 runs/<corpus>/<run_id>/        # local only
   candidates.jsonl trace.jsonl findings.json report_data.json export/rules.csv export/rules.json
   report/                      # built static site for this run (copied from report/out)
-  spend.json                   # tokens + USD per role and model, written as the run goes
+  spend.jsonl                  # tokens + USD per role and model, written as the run goes
 llm_cache/                     # local only; the offline demo replays from it on this machine
 evals/
   ground_truth/city_2025_04.yaml
@@ -428,6 +428,14 @@ def run_agent(role: str, task: str, inputs: dict, out: type[T], max_steps: int =
 class BudgetExceeded(Exception)  # raised before a live call that would start past the cap
 ```
 
+As built in task 3 (authoritative over the sketch above):
+- `make_model(role, run_dir)` picks the tier from `ROLE_TIER`. `run_agent(role, task, out, *, build_dir, run_dir, max_steps)` returns `T | AgentFailure`, with no `inputs` argument; the task string carries the inputs.
+- `BudgetExceeded`, an offline cache miss, and a missing `usage.cost` propagate out of `run_agent` as themselves. smolagents wraps model errors, so `run_agent` unwraps them.
+- `AUDITOR_RUNS_ROOT` (default `runs/`) and `AUDITOR_CACHE_DIR` (default `llm_cache/`) are settings. A run dir outside the runs root is refused, so the day cap always sums every run.
+- Each agent run appends one `TraceEvent` to `run_dir/trace.jsonl`, with the tool calls, their arguments, and their outputs (truncated).
+- The MCP server process gets only the environment it needs, not the API key.
+- The pinned stack is mcp 1.30.0 with mcpadapt 0.1.20. mcpadapt still imports the mcp 1.x client name, so mcp 2.x breaks smolagents' MCP tools.
+
 Model tiers. Each role has a fixed tier in a `ROLE_TIER` dict, so swapping a model means changing one env var:
 - `extract`: `extract_prose` and `compare_match`. Default is a Haiku-class model.
 - `judge`: every finder, every skeptic, `judge_xref`, and `compare_support`. Default is a Sonnet-class model.
@@ -435,9 +443,9 @@ Model tiers. Each role has a fixed tier in a `ROLE_TIER` dict, so swapping a mod
 
 Spend:
 - `CachedModel` reads `usage.cost` from each live response. OpenRouter returns the cost charged in credits on every non-streaming response, with no extra parameters (OpenRouter usage-accounting docs, read via Context7). smolagents keeps the raw response on `ChatMessage.raw` (checked in smolagents 1.26.0 source). There is no local price table. Agents run non-streaming so the cost is always present; a live response without `usage.cost` is an error.
-- It appends `{role, model, input_tokens, output_tokens, usd, cached: bool}` to `runs/…/spend.json`.
+- It appends `{role, model, input_tokens, output_tokens, usd, cached: bool}` to `runs/…/spend.jsonl`.
 - Cache hits are logged at $0, so a replayed run shows its true cost: zero.
-- `AUDITOR_BUDGET_USD=20` is a hard cap per run, and `AUDITOR_BUDGET_TOTAL_USD=100` is a cap for the day, on your current API account, summed from every `spend.json`. On the next live call past either cap, `CachedModel` raises `BudgetExceeded`. The harness then stops the run, writes partial outputs, and marks the funnel as truncated. Nothing silently skips work.
+- `AUDITOR_BUDGET_USD=20` is a hard cap per run, and `AUDITOR_BUDGET_TOTAL_USD=100` is a cap for the day, on your current API account, summed from every `spend.jsonl`. On the next live call past either cap, `CachedModel` raises `BudgetExceeded`. The harness then stops the run, writes partial outputs, and marks the funnel as truncated. Nothing silently skips work.
 - A spend line goes to stderr after every 25 live calls and at the end of the run, and `results.md` gets one spend row per eval run.
 
 - `run_agent` builds a `ToolCallingAgent` with the MCP tool collection, the role prompt from `prompts/<role>.md`, and `max_steps`.
@@ -658,7 +666,7 @@ One command produces `evals/results.md`: a single table that leads with counts. 
 | Ambiguities | up to 10 reported | genuine / not | you |
 | Per-prompt datasets | §9.4, about 10 cases per role | "k of n" per role at the frozen commit | automatic; labels model-drafted, spot-checked by you |
 | Comparison faithfulness | ~20 comparisons | verbatim in the other code (auto); supports the summary (hand); same subject (hand). Measures accuracy, not desirability. | auto + you |
-| Spend | every eval run | live calls, tokens, USD per tier; cache hits counted separately | automatic (`spend.json`) |
+| Spend | every eval run | live calls, tokens, USD per tier; cache hits counted separately | automatic (`spend.jsonl`) |
 
 Order matters. Extraction accuracy is labeled at task 3, before any contradiction is trusted, because extraction errors become false contradictions.
 
