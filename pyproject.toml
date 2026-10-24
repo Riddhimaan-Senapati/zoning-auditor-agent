@@ -1,0 +1,31 @@
+[project]
+name = "auditor"
+version = "0.1.0"
+description = "Boston Zoning Code Auditor: an independent prototype, not a City of Boston service"
+authors = [
+    { name = "Riddhimaan-Senapati", email = "rsenapati@umass.edu" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4==4.15.0",
+    "mcp==2.3.0",
+    "pdfplumber==0.11.10",
+    "pydantic==2.14.1",
+    "smolagents[mcp,openai]==1.26.0",
+]
+
+[project.scripts]
+auditor = "auditor.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["uv_build>=0.12.18,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "hypothesis==6.170.9",
+    "pytest==9.1.1",
+]
