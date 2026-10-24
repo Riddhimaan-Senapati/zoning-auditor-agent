@@ -1,0 +1,418 @@
+# Dev ground truth for the April 2025 "Correcting Zoning Code Errors" round.
+# One entry per instance in Articles 53 and 65 (design §2), plus the two TA 454
+# entries, which are out of scope because they show only across 17 articles.
+#
+# pre_text is pre-correction text the auditor can quote: the struck text of a
+# substitution, or the unchanged wording around an insertion. post_text is the
+# corrected reading. matched_edit names the tools/unredline.py edit (page and pair)
+# each entry was drafted from; every entry has one. The two Art 65 missing-row
+# entries describe an absence, so their pre_text is the district code and their
+# page is where the correction inserts the row.
+#
+# Article 53 in-scope count: 26 (3 district names + 1 Table A fn 2 ambiguity +
+# 5 accessory rename + 16 footnote refs + 1 self-reference).
+
+# --- Article 53, rows 1-3: §53-4 district names (undefined district code) ---
+- id: 53-04-ebr1
+  article: "53"
+  location: "§53-4 ¶1 (EBR-2.5 subdistrict)"
+  section_id: "53-4"
+  pre_text: "EBR-1"
+  post_text: "EBR-2.5"
+  class: undefined_term_or_district
+  in_scope: true
+  summary_item: "§53-4 district names"
+  redline_page: 20
+  matched_edit: "p20 EBR-1 -> EBR-2.5"
+
+- id: 53-04-ebr2
+  article: "53"
+  location: "§53-4 ¶2 (EBR-3 subdistrict)"
+  section_id: "53-4"
+  pre_text: "EBR-2"
+  post_text: "EBR-3"
+  class: undefined_term_or_district
+  in_scope: true
+  summary_item: "§53-4 district names"
+  redline_page: 20
+  matched_edit: "p20 EBR-2 -> EBR-3"
+
+- id: 53-04-ebr3
+  article: "53"
+  location: "§53-4 ¶3 (EBR-4 subdistrict)"
+  section_id: "53-4"
+  pre_text: "EBR-3"
+  post_text: "EBR-4"
+  class: undefined_term_or_district
+  in_scope: true
+  summary_item: "§53-4 district names"
+  redline_page: 20
+  matched_edit: "p20 EBR-3 -> EBR-4"
+
+# --- Article 53, row 4: Table A footnote 2 clarified (ambiguity) ---
+# The pre-correction footnote 2 stated only the >55ft case; the correction INSERTS
+# a sentence covering the <=55ft case (p24 is a pure green insertion, no struck
+# text). pre_text is the pre-correction sentence actually present in Table A fn 2,
+# which the auditor flags as ambiguous (silent on Lot Frontage of 55 feet or less).
+- id: 53-tableA-fn2
+  article: "53"
+  location: "Table A, footnote 2 (EBR-3 occupancy)"
+  section_id: "53:TableA:fn2"
+  pre_text: "Where designated \"A,\" and the Lot Frontage is over fifty-five (55) feet, up to six (6) dwelling units are allowed."
+  post_text: "Where designated \u201cA,\u201d and the Lot Frontage is over fifty-five (55) feet, up to six (6) dwelling units are allowed. Where designated \u201cA,\u201d and the Lot Frontage is fifty-five (55) feet or less, up to three (3) dwelling units are allowed."
+  class: ambiguity
+  in_scope: true
+  summary_item: "Table A fn 2 ambiguity"
+  redline_page: 24
+  matched_edit: "p24 insertion: \u201cWhere designated \u201cA,\u201d and the Lot Frontage is fifty-five (55) feet or less, up to three (3) dwelling units are allowed.\u201d"
+
+# --- Article 53, rows 5-9: accessory day-care rename, Tables A-E (stale term) ---
+- id: 53-rename-tableA
+  article: "53"
+  location: "Table A use list"
+  section_id: "53:TableA"
+  pre_text: "Accessory Family Day Care Home"
+  post_text: "Accessory Family Child Care Home"
+  class: undefined_term_or_district
+  in_scope: true
+  summary_item: "accessory-use rename"
+  redline_page: 25
+  matched_edit: "p25 Accessory Family Day Care Home -> Accessory Family Child Care Home"
+
+- id: 53-rename-tableB
+  article: "53"
+  location: "Table B use list"
+  section_id: "53:TableB"
+  pre_text: "Accessory Family Day Care Home"
+  post_text: "Accessory Family Child Care Home"
+  class: undefined_term_or_district
+  in_scope: true
+  summary_item: "accessory-use rename"
+  redline_page: 27
+  matched_edit: "p27 Accessory Family Day Care Home -> Accessory Family Child Care Home"
+
+- id: 53-rename-tableC
+  article: "53"
+  location: "Table C use list"
+  section_id: "53:TableC"
+  pre_text: "Accessory Family Day Care Home"
+  post_text: "Accessory Family Child Care Home"
+  class: undefined_term_or_district
+  in_scope: true
+  summary_item: "accessory-use rename"
+  redline_page: 28
+  matched_edit: "p28 Accessory Family Day Care Home -> Accessory Family Child Care Home"
+
+- id: 53-rename-tableD
+  article: "53"
+  location: "Table D use list"
+  section_id: "53:TableD"
+  pre_text: "Accessory Family Day Care Home"
+  post_text: "Accessory Family Child Care Home"
+  class: undefined_term_or_district
+  in_scope: true
+  summary_item: "accessory-use rename"
+  redline_page: 29
+  matched_edit: "p29 Accessory Family Day Care Home -> Accessory Family Child Care Home"
+
+- id: 53-rename-tableE
+  article: "53"
+  location: "Table E use list"
+  section_id: "53:TableE"
+  pre_text: "Accessory Family Day Care Home"
+  post_text: "Accessory Family Child Care Home"
+  class: undefined_term_or_district
+  in_scope: true
+  summary_item: "accessory-use rename"
+  redline_page: 30
+  matched_edit: "p30 Accessory Family Day Care Home -> Accessory Family Child Care Home"
+
+# --- Article 53, rows 10-25: 16 footnote section refs, Tables H/I/J/K/M ---
+# Each cites a title that no longer matches the renumbered target (xref title mismatch).
+
+# Table H (page 31)
+- id: 53-tableH-fn1-tidelands
+  article: "53"
+  location: "Table H, footnote 1 (Tidelands range)"
+  section_id: "53:TableH:fn1"
+  pre_text: "Sections 53-6 through 53-8"
+  post_text: "Sections 53-8 through 53-10"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 31
+  matched_edit: "p31 Sections 53-6 through 53-8 -> Sections 53-8 through 53-10"
+
+- id: 53-tableH-fn3-yardarea
+  article: "53"
+  location: "Table H, footnote (Waterfront Yard Area Requirements)"
+  section_id: "53:TableH:fn3"
+  pre_text: "Section 53-8.4"
+  post_text: "Section 53-10.4"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 31
+  matched_edit: "p31 Section 53-8.4 -> Section 53-10.4"
+
+- id: 53-tableH-fn3-openspace
+  article: "53"
+  location: "Table H, footnote (Waterfront Open Space Requirements)"
+  section_id: "53:TableH:fn3b"
+  pre_text: "Section 53-8.3"
+  post_text: "Section 53-10.3"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 31
+  matched_edit: "p31 Section 53-8.3 -> Section 53-10.3"
+
+- id: 53-tableH-fn4-table2
+  article: "53"
+  location: "Table H, footnote (Table 2 PDA heights)"
+  section_id: "53:TableH:fn4"
+  pre_text: "Section 53-19"
+  post_text: "Section 53-21"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 31
+  matched_edit: "p31 Section 53-19 -> Section 53-21"
+
+- id: 53-tableH-fn5-cfrod
+  article: "53"
+  location: "Table H, footnote (Applicability of CFROD)"
+  section_id: "53:TableH:fn5"
+  pre_text: "Section 53-17"
+  post_text: "Section 53-19"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 31
+  matched_edit: "p31 Section 53-17 -> Section 53-19"
+
+# Table I (page 32)
+- id: 53-tableI-fn1-tidelands
+  article: "53"
+  location: "Table I, footnote 1 (Tidelands range)"
+  section_id: "53:TableI:fn1"
+  pre_text: "Sections 53-6 through 53-8"
+  post_text: "Sections 53-8 through 53-10"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 32
+  matched_edit: "p32 Sections 53-6 through 53-8 -> Sections 53-8 through 53-10"
+
+- id: 53-tableI-fn-siteplan
+  article: "53"
+  location: "Table I, footnote (Site Plan Approval)"
+  section_id: "53:TableI:fn3"
+  pre_text: "Section 53-12.3"
+  post_text: "Section 53-14.3"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 32
+  matched_edit: "p32 Section 53-12.3 -> Section 53-14.3"
+
+- id: 53-tableI-fn-table2
+  article: "53"
+  location: "Table I, footnote (Table 2 PDA heights)"
+  section_id: "53:TableI:fn6"
+  pre_text: "Section 53-19"
+  post_text: "Section 53-21"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 32
+  matched_edit: "p32 Section 53-19 -> Section 53-21"
+
+- id: 53-tableI-fn-cfrod
+  article: "53"
+  location: "Table I, footnote (Applicability of CFROD)"
+  section_id: "53:TableI:fn5"
+  pre_text: "Section 53-17"
+  post_text: "Section 53-19"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 32
+  matched_edit: "p32 Section 53-17 -> Section 53-19"
+
+# Table J (page 33)
+- id: 53-tableJ-fn1-tidelands
+  article: "53"
+  location: "Table J, footnote 1 (Tidelands range)"
+  section_id: "53:TableJ:fn1"
+  pre_text: "Sections 53-6 through 53-8"
+  post_text: "Sections 53-8 through 53-10"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 33
+  matched_edit: "p33 Sections 53-6 through 53-8 -> Sections 53-8 through 53-10"
+
+- id: 53-tableJ-fn-table2
+  article: "53"
+  location: "Table J, footnote (Table 2 PDA heights)"
+  section_id: "53:TableJ:fn2"
+  pre_text: "Section 53-19"
+  post_text: "Section 53-21"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 33
+  matched_edit: "p33 Section 53-19 -> Section 53-21"
+
+- id: 53-tableJ-fn-cfrod
+  article: "53"
+  location: "Table J, footnote (Applicability of CFROD)"
+  section_id: "53:TableJ:fn5"
+  pre_text: "Section 53-17"
+  post_text: "Section 53-19"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 33
+  matched_edit: "p33 Section 53-17 -> Section 53-19"
+
+# Table K (page 34)
+- id: 53-tableK-fn1-tidelands
+  article: "53"
+  location: "Table K, footnote 1 (Tidelands range)"
+  section_id: "53:TableK:fn1"
+  pre_text: "Sections 53-6 through 53-8"
+  post_text: "Sections 53-8 through 53-10"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 34
+  matched_edit: "p34 Sections 53-6 through 53-8 -> Sections 53-8 through 53-10"
+
+- id: 53-tableK-fn-subdistrict
+  article: "53"
+  location: "Table K, footnote (subdistrict standards)"
+  section_id: "53:TableK:fn4"
+  pre_text: "Section 53-15.3"
+  post_text: "Section 53-17.3"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 34
+  matched_edit: "p34 Section 53-15.3 -> Section 53-17.3"
+
+- id: 53-tableK-fn-cfrod
+  article: "53"
+  location: "Table K, footnote (Applicability of CFROD)"
+  section_id: "53:TableK:fn5"
+  pre_text: "Section 53-17"
+  post_text: "Section 53-19"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 34
+  matched_edit: "p34 Section 53-17 -> Section 53-19"
+
+# Table M (page 34)
+- id: 53-tableM-fn-parking
+  article: "53"
+  location: "Table M, footnote (Off-Street Parking and Loading)"
+  section_id: "53:TableM:fn1"
+  pre_text: "Section 53-26"
+  post_text: "Section 53-28"
+  class: xref_title_mismatch
+  in_scope: true
+  summary_item: "Tables H-M footnote refs"
+  redline_page: 34
+  matched_edit: "p34 Section 53-26 -> Section 53-28"
+
+# --- Article 53, row 26: §53-29.4 self-reference ---
+- id: 53-29-4-self
+  article: "53"
+  location: "§53-29.4, within §53-29 (Front Yard)"
+  section_id: "53-29.4"
+  pre_text: "Section 53-27"
+  post_text: "Section 53-29"
+  class: xref_self_mismatch
+  in_scope: true
+  summary_item: "§53-29.4 self-reference"
+  redline_page: 21
+  matched_edit: "p21 Section 53-27 -> Section 53-29"
+
+# --- Article 65: Table C mislabeled rear-yard columns ---
+- id: 65-tableC-rearyard-depth
+  article: "65"
+  location: "Table C, rear-yard depth column header"
+  section_id: "65:TableC"
+  pre_text: "Rear Yard Minimum by Accessory Depth (Feet)"
+  post_text: "Rear Yard Minimum Depth (Feet)"
+  class: contradiction
+  in_scope: true
+  summary_item: "Table C mislabeled rear-yard columns"
+  redline_page: 39
+  matched_edit: "p39 Rear Yard Minimum by Accessory Depth (Feet) -> Rear Yard Minimum Depth (Feet)"
+
+- id: 65-tableC-rearyard-occupancy
+  article: "65"
+  location: "Table C, rear-yard occupancy column header"
+  section_id: "65:TableC"
+  pre_text: "Rear Yard Maximum Occupancy Building (Percent)"
+  post_text: "Rear Yard Maximum Occupancy by Accessory Building (Percent)"
+  class: contradiction
+  in_scope: true
+  summary_item: "Table C mislabeled rear-yard columns"
+  redline_page: 39
+  matched_edit: "p39 Rear Yard Maximum Occupancy Building (Percent) -> Rear Yard Maximum Occupancy by Accessory Building (Percent)"
+
+# --- Article 65: missing dimensional rows for mapped subdistricts ---
+# The row was absent pre-correction; the correction adds it as a green insertion,
+# so each is now backed by an extracted pure-insertion edit.
+- id: 65-missing-2f-3000
+  article: "65"
+  location: "dimensional table (2F-3000 subdistrict)"
+  section_id: "65:TableC"
+  pre_text: "2F-3000"
+  post_text: "2F-3000 (dimensional row added)"
+  class: undefined_term_or_district
+  in_scope: true
+  summary_item: "missing rows for 2F-3000 and 3F-D-4000"
+  redline_page: 40
+  matched_edit: "p40 insertion: 2F-3000(5) dimensional row"
+
+- id: 65-missing-3f-d-4000
+  article: "65"
+  location: "dimensional table (3F-D-4000 subdistrict)"
+  section_id: "65:TableC"
+  pre_text: "3F-D-4,000"
+  post_text: "3F-D-4,000 (dimensional row added)"
+  class: undefined_term_or_district
+  in_scope: true
+  summary_item: "missing rows for 2F-3000 and 3F-D-4000"
+  redline_page: 44
+  matched_edit: "p44 insertion: 3F-D-4,000(5) dimensional row"
+
+# --- Out of scope: TA 454 affordable-housing parking footnotes (cross-article) ---
+- id: 53-tableL-ta454
+  article: "53"
+  location: "Table L (TA 454 affordable-housing parking footnote)"
+  section_id: "53:TableL"
+  pre_text: "Applicable Footnotes: (1), (2), (3), (4)"
+  post_text: "Applicable Footnotes: (1), (2), (3), (4), (5)"
+  class: out_of_scope
+  in_scope: false
+  summary_item: "TA 454 missing footnote"
+  redline_page: 52
+  matched_edit: "p52 insertion: ', (5)' (footnote 5 text inserted on p53)"
+
+- id: 65-tableF-ta454
+  article: "65"
+  location: "Table F (TA 454 affordable-housing parking footnote)"
+  section_id: "65:TableF"
+  pre_text: "Other Residential Uses (3)"
+  post_text: "Other Residential Uses (3), (4)"
+  class: out_of_scope
+  in_scope: false
+  summary_item: "TA 454 missing footnote"
+  redline_page: 70
+  matched_edit: "p70 insertion: ', (4)' (footnote 4 text inserted on p70)"

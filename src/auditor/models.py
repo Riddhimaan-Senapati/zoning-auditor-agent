@@ -6,7 +6,13 @@ from decimal import Decimal
 from enum import StrEnum, auto
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, BaseModel, Field, computed_field, model_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    Field,
+    computed_field,
+    model_validator,
+)
 
 # Article is digits plus optional capitals ("53", "80B"); then either a dotted section
 # number ("29.4", "3.1a") or a colon path ("TableH", "TableH:fn3"). No "_" and no empty
@@ -165,29 +171,78 @@ class Rule(BaseModel):
         return self
 
 
+ResolutionStatus = Literal[
+    "ok", "missing", "title_mismatch", "self_mismatch", "cross_article_shadow",
+    "undefined_district", "footnote_missing", "footnote_unused", "external_unchecked",
+    "scope_mismatch", "definition_mismatch", "undefined_term", "district_without_row",
+    "needs_judgment",
+]
+
+
 class Resolution(BaseModel):
-    status: Literal[
-        "ok", "missing", "title_mismatch", "self_mismatch", "cross_article_shadow",
-        "undefined_district", "footnote_missing", "footnote_unused", "external_unchecked",
-        "needs_judgment",
-    ]
-    resolved_id: SectionId | None
-    title_match_id: SectionId | None  # a section whose heading matches cited_title
-    detail: str  # code-generated, factual
+    status: ResolutionStatus
+    detail: str  # one neutral, code-generated sentence; it becomes the candidate's claim
+    resolved_id: SectionId | None = None
+    title_match_id: SectionId | None = None  # best section whose heading matches the cited title
 
 
 class XRef(BaseModel):
-    id: str
-    source_id: SectionId
-    raw: str  # "Section 53-8.4"
-    span: tuple[int, int]
-    target_kind: Literal[
-        "section", "section_range", "table", "footnote", "article",
-        "district", "agency", "self_section", "self_table",
-    ]
-    target: str
-    cited_title: str | None  # text of the trailing parenthetical, if any
+    """What resolution emits for every check it runs: the verified quote locating the
+    checked text, and the outcome."""
+    quote: Quote
     resolution: Resolution
+
+    @model_validator(mode="after")
+    def _verified(self) -> XRef:
+        if not is_verified(self.quote):
+            raise ValueError("an xref is located by a verified quote")
+        return self
+
+
+# Prose references, from xrefs.extract_references to resolve. Each kind has its own typed
+# targets, so resolution never re-parses a string.
+
+
+class SectionRef(BaseModel):
+    quote: TextQuote
+    target: SectionId
+    cited_title: str | None = None
+
+
+class RangeRef(BaseModel):
+    quote: TextQuote
+    lo: SectionId
+    hi: SectionId
+    cited_title: str | None = None
+
+
+class TableRef(BaseModel):
+    quote: TextQuote
+    table: str  # "H", "2"
+    within: SectionId | None = None  # "Table 2 in Section 53-21"
+
+
+class SelfSectionRef(BaseModel):
+    quote: TextQuote
+    target: SectionId
+
+
+class SelfTableRef(BaseModel):
+    quote: TextQuote
+    table: str
+
+
+class ArticleRef(BaseModel):
+    quote: TextQuote
+    article: str
+
+
+class DistrictRef(BaseModel):
+    quote: TextQuote
+    code: DistrictCode
+
+
+Reference = SectionRef | RangeRef | TableRef | SelfSectionRef | SelfTableRef | ArticleRef
 
 
 IssueType = Literal["contradiction", "xref", "ambiguity", "trip"]

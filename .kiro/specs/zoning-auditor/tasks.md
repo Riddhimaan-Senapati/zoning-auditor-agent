@@ -62,19 +62,19 @@ Line budget: about 2,300 lines of Python in `src/` plus about 600 lines of TypeS
 - [ ] 2. Cross-references, deterministic (1:00–2:15)
   - [ ] 2.1 Ingest saved Municode HTML into Sections and Tables (`ingest.py`)
     - _Requirements: 2.1, 2.2, 2.5, 21.1_
-  - [ ] 2.2 Reference grammar (`xrefs.py`), tested on the real strings from the April 2025 redline
+  - [x] 2.2 Reference grammar (`xrefs.py`), tested on the real strings from the April 2025 redline
     - _Requirements: 2.3_
-  - [ ] 2.3 Deterministic resolution, rules (a) to (h) in design §5.3 (`resolve.py`)
+  - [x] 2.3 Deterministic resolution, rules (a) to (l) in design §5.3 (`resolve.py`)
     - Tune the title-similarity threshold on the dev cases only, and record it in config
     - _Requirements: 6.1, 6.2, 6.6_
-  - [ ] 2.4 Full-text search index (`search.py`)
+  - [x] 2.4 Full-text search index (`search.py`)
     - _Requirements: 2.4_
   - [ ] 2.5 Pre-correction corpus from the redline PDF (`tools/unredline.py`)
-    - Detect struck and underlined text from pdfplumber line objects; reverse-apply the edits to the saved current HTML; exit non-zero if any inserted string is not found exactly once
+    - Classify deleted and inserted text by character color (done: 126 edits; every redline page reverse-applies exactly; `apply` exits non-zero on any unlocatable edit). Still to do: run it on the saved current HTML once it exists
     - _Requirements: 21.3_
-  - [ ] 2.6 Draft the dev ground truth (`evals/ground_truth/city_2025_04.yaml`), one entry per instance in design §2, each with its redline page
+  - [x] 2.6 Draft the dev ground truth (`evals/ground_truth/city_2025_04.yaml`), one entry per instance in design §2, each with its redline page
     - _Requirements: 16.4_
-  - [ ] 2.7 Deterministic xref candidates (`find_xrefs.py`, deterministic part)
+  - [x] 2.7 Deterministic xref candidates (`find_xrefs.py`, deterministic part)
     - _Requirements: 6.3_
   - [ ] 2.8 Checkpoint
     - Gate: `auditor run pre2025 --only xref --no-model` prints "k of 26" against the Dev_Key
@@ -117,7 +117,8 @@ Line budget: about 2,300 lines of Python in `src/` plus about 600 lines of TypeS
   - [ ] 4.3 Verification (`verify.py`): the quote gate plus `skeptic_contradiction` and `skeptic_xref`
     - _Requirements: 4.2, 4.4, 5.4, 6.4, 8.1, 8.2, 8.3, 8.4, 8.5_
   - [ ] 4.4 `judge_xref` for `needs_judgment` references
-    - _Requirements: 6.5_
+    - Includes the agency-name extractor fed by `data/agency_renames.csv`
+    - _Requirements: 6.5, 2.3_
   - [ ] 4.5 Findings store, trace, and funnel (`findings.py`)
     - _Requirements: 9.1, 9.2, 9.3_
   - [ ] 4.6 Property tests for dedupe, the funnel, and no-quote-no-record

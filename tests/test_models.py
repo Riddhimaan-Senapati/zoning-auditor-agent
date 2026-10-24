@@ -6,8 +6,8 @@ from pydantic import TypeAdapter, ValidationError
 from auditor.corpus import Corpus
 from auditor.ids import slug
 from auditor.models import (
-    Candidate, Cell, CellQuote, Finding, Quote, RegulatedItem, Rule, Section, SourceRef,
-    Table, TableRow, TextQuote, Verdict,
+    Candidate, Cell, CellQuote, Finding, Quote, RegulatedItem, Resolution, Rule, Section,
+    SourceRef, Table, TableRow, TextQuote, Verdict, XRef,
 )
 
 VERIFIED = TextQuote(section_id="53-1", text="hello", span=(0, 5))
@@ -114,3 +114,10 @@ def test_corpus_rejects_duplicate_ids():
                 kind="section", source=SourceRef(file="f", anchor="a"))
     with pytest.raises(ValueError):
         Corpus([s, s], [])
+
+
+def test_xref_requires_a_verified_quote():
+    ok = Resolution(status="ok", detail="d")
+    assert XRef(quote=VERIFIED, resolution=ok).resolution.resolved_id is None
+    with pytest.raises(ValidationError):
+        XRef(quote=TextQuote(section_id="53-1", text="hello"), resolution=ok)

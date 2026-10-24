@@ -11,6 +11,7 @@ dependencies = [
     "mcp==2.3.0",
     "pdfplumber==0.11.10",
     "pydantic==2.14.1",
+    "pyyaml==6.0.3",
     "smolagents[mcp,openai]==1.26.0",
 ]
 

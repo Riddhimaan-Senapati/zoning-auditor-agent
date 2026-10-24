@@ -100,8 +100,8 @@ It is built solo in 12 hours at Hackachusetts 2026 (Civic action track), with on
 
 1. THE Index SHALL resolve each XRef deterministically against the Section index and the table of contents, with the statuses in design §5.3.
 2. WHEN an XRef cites a title that does not match the target heading, THE Auditor SHALL report the section whose heading does match, if one exists, as a fact and not as a fix.
-3. WHEN an XRef has status `self_mismatch`, `missing`, `undefined_district`, `footnote_missing`, or `footnote_unused`, THE Auditor SHALL report it without calling the Skeptic.
-4. WHEN an XRef has status `cross_article_shadow` or `title_mismatch`, THE Skeptic SHALL review it before it is reported.
+3. WHEN an XRef has status `self_mismatch`, `missing`, `undefined_district`, `footnote_missing`, `footnote_unused`, or `definition_mismatch`, THE Auditor SHALL report it without calling the Skeptic.
+4. WHEN an XRef has status `cross_article_shadow`, `title_mismatch`, `scope_mismatch`, `undefined_term`, or `district_without_row`, THE Skeptic SHALL review it before it is reported.
 5. WHEN an XRef has status `needs_judgment`, THE Auditor SHALL send it to the `judge_xref` agent with the cited rows of `agency_renames.csv`.
 6. WHEN an XRef targets an article that is neither loaded nor in the table of contents, THE Auditor SHALL count it in the Funnel as `external_unchecked` and SHALL NOT report it.
 

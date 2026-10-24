@@ -126,12 +126,12 @@ Changes from the suggested architecture, with reasons:
 #### 4.2 Pre-correction corpus
 
 All pre-correction text comes from the Planning Department redline PDFs. `tools/unredline.py` builds it:
-- pdfplumber reads the redline and finds strike-through and underline line objects overlapping characters. Struck text is deleted text; underlined text is inserted text.
+- pdfplumber reads the redline and classifies each character by fill color. Measured on the April 2025 redline: deletions are red (1, 0, 0) and 93% carry a strike line; insertions are green (0.22, 0.46, 0.11) and almost never underlined (about 4%). Line geometry alone fails, because table borders cross the midline of about 6% of unchanged characters. Runs are grouped in pdfplumber's native character order, which keeps overlapping deleted and inserted layers contiguous.
 - This produces a list of (article, location, inserted text → deleted text) edits.
 - The script applies them in reverse to the current article text and fails loudly if any inserted string is not found exactly once.
 - The output is hand-spot-checked against the redline images for every edit in Articles 53 and 65.
 
-Text extraction alone cannot tell struck from inserted text (I confirmed this: pypdf prints both, e.g. "Section 67-32 Section 68-33"), so line-object detection is required.
+Text extraction alone cannot tell struck from inserted text (pypdf prints both, e.g. "Section 67-32 Section 68-33"), so per-character color is required.
 
 Risk: Article 53 may have been amended between June 2025 and now for unrelated reasons. Reverse-applying the redline then gives "current text minus the corrections", not the true historical text. That is acceptable for the eval as long as the report says so.
 
@@ -218,6 +218,7 @@ src/auditor/
 - **`Verdict.quote_check` is gone.** The quote gate failed exactly when `quote_failures` is non-empty, and then `skeptic` is `not_run`. Reconciling quotes must be verified.
 - **`Finding` enforces reportability.** It needs at least one verified quote and a verdict of `upheld` or `skipped`. `readings` are present for ambiguities and only for them, on both `Finding` and `Candidate`.
 - **`Table` must be rectangular**, with unique column headers and row labels. `Corpus` rejects duplicate ids.
+- **`Reference` and `XRef`.** `Reference` is a union of one small model per kind (`SectionRef`, `RangeRef`, `TableRef`, `DistrictRef`, and so on), told apart by class. Each is located by a verified quote. `XRef` is a verified quote plus a `Resolution`, which is what every rule emits, including the rules that don't start from a reference: (f) unused footnotes, (h), (i), and (j). `Resolution.detail` is the neutral, code-written claim. A header footnote mark is quoted by the row-0 cell under that header.
 
 ```python
 SectionId = NewType("SectionId", str)   # "53-29.4", "53:TableH", "53:TableH:fn3"
@@ -371,23 +372,36 @@ def build_search(sections: list[Section], db: Path) -> None
 def search(db: Path, query: str, k: int) -> list[SectionId]
 ```
 
-The reference grammar is a set of regexes, tested on real strings from the redline:
-- "Section 53-29.14", "Sections 53-8 through 53-10" (range, expanded)
-- "Section 80B-3.1a", "Section 23-9.a", "Article 2A"
-- "Table 2 in Section 53-21", "this Table I", "this Section 53-29.13"
-- footnote markers "(3)" in table cells and headers, and "Applicable Footnotes: (1), (5)"
-- district codes from the article's establishment section ("EBR-2.5")
-- agency names from `agency_renames.csv`
+The reference grammar is a set of regexes, tested on real strings from the redline. Each kind of reference has its own typed variant (`Reference` is a discriminated union on `kind`), so resolution never re-parses a target string.
+- Single sections: "Section 53-29.14", "Section 80B-3.1a", "Section 23-9.a".
+- Lists: "Sections 53-8 and 53-10", "Sections A, B, and C", "Section 80B-2 or 80E-2". Each listed section becomes its own reference.
+- Ranges: "Sections 53-8 through 53-10".
+- Articles: "Article 2A".
+- Tables: "Table H", and table-in-section scope, "Table 2 in Section 53-21".
+- Self-references: "this Section 53-29.13" and "this Table I", with either case of "this".
+- Footnote marks: "(3)" in table cells and in column headers, and "Applicable Footnotes: (1), (5)".
+- District codes: tokens in a district family the article establishes. A family is the prefix before the first "-" or "/" ("EBR", "2F"), or the letters of a one-part code ("S" for "S0").
+- Agency names: from `agency_renames.csv`. Added with `judge_xref` (task 4.4); there is no agency extractor before then.
+- Cited titles: a parenthetical immediately after the reference counts only if it reads as a title, meaning it has at least two words and is not "(as amended …)". Case doesn't matter, because the code writes "(concerning regulations applicable on Tidelands)" in lowercase. Single letters and numbers in parentheses, like "(a)" or "(3)", are not titles.
 
 Resolution rules run in this order. All are deterministic.
-- (a) **self_mismatch**: "this Section X" where X is not the containing section or an ancestor of it; "this Table X" where X is not the containing table.
-- (b) **missing**: the target is in a loaded article (or the TOC) and does not exist.
+- (a) **self_mismatch**: "this Section X" where X is not the containing section or an ancestor of it; "this Table X" where X is not the containing table. The claim names the containing section or table.
+- (b) **missing**: the target's article is loaded or listed in the TOC, and the target section does not exist there.
 - (c) **cross_article_shadow**: the target is in article M, the source is in article N ≠ M, and article N has a section whose heading matches `cited_title`. This catches "Section 67-32" cited from Article 68.
-- (d) **title_mismatch**: the target exists, `cited_title` is present, and its similarity to the target heading is below a threshold. `title_match_id` records the section whose heading does match, if any. Similarity is token-set Jaccard on normalized words; the threshold is tuned on the Article 53 redline cases and recorded in config.
-- (e) **undefined_district**: a district-code-shaped token not established in the article.
-- (f) **footnote_missing / footnote_unused**: a cell or header marker with no footnote, or a footnote that nothing references.
-- (g) **external_unchecked**: the target article is not loaded and is not in the TOC.
-- (h) **needs_judgment**: agency names in the rename table, and references to "Table 2" when an article has several tables numbered 2.
+- (d) **title_mismatch**: the target exists (loaded, or listed in the TOC), `cited_title` is present, and its similarity to the target heading is below a threshold. `title_match_id` records the best-scoring section whose heading does match, if any. Similarity is token-set Jaccard on `normalize`d words. The threshold is provisional until ingest gives real headings, and is re-tuned on the dev set then. For a range, the cited title must match the heading of every section in the range at the endpoints' depth. This is provisional: check it against the real Article 53 headings after ingest, because a correct range whose sections have different headings would be flagged.
+- (e) **undefined_district**: a token in an established family that the article does not establish.
+- (f) **footnote_missing / footnote_unused**: a cell or header mark with no footnote, or a footnote that no cell, header, or "Applicable Footnotes" line references.
+- (g) **scope_mismatch**: "Table N in Section X" where the article's Table N is not under Section X. The detail names where Table N is.
+- (h) **definition_mismatch**: a paragraph whose heading defines a district code, e.g. `East Boston Residential-3 ("EBR-3") Subdistricts.`, but whose body uses a different code of the same family as its subject. This catches §53-4 rows 1–3 of §2.
+- (i) **undefined_term**: a use name in a use-table row label that is not a defined use term. Defined terms come from Article 2 definitions plus the use names in Article 8 Table A. This catches rows 5–9 of §2.
+- (j) **district_without_row**: a district the article establishes that has no row in any of the article's dimensional tables. This catches Article 65's missing 2F-3000 and 3F-D-4000 rows.
+- (k) **external_unchecked**: the target's article is neither loaded nor in the TOC. A target listed in the TOC but not loaded is checked against its TOC heading under (d), and is otherwise ok.
+- (l) **needs_judgment**: agency names in the rename table (task 4.4).
+
+Not covered by any deterministic rule, so left to the model finders and the dev eval:
+- the Table A fn 2 ambiguity (row 4 of §2);
+- references with no cited title whose target exists, e.g. "Section 53-15.3" in Table K fn 3;
+- column headers mislabeled relative to sibling tables (Article 65 Table C).
 
 #### 5.4 Extraction (`extract_tables.py`, `extract_prose.py`)
 
@@ -476,7 +490,7 @@ def verify(c: Candidate, corpus: Corpus, runner: AgentRunner) -> Verdict
 
 #### 6.3 Which candidates skip the skeptic
 
-Only deterministic cross-reference statuses (a) self_mismatch, (b) missing, (e) undefined_district, and (f) footnote integrity. These are facts about the text that the code proves. (c) and (d) still go to `skeptic_xref`: the skeptic can find, for example, that a cited title is a legitimate alias.
+Only the deterministic cross-reference statuses (a) self_mismatch, (b) missing, (e) undefined_district, (f) footnote integrity, and (h) definition_mismatch. These are facts the code proves about the text. (c) cross_article_shadow, (d) title_mismatch, (g) scope_mismatch, (i) undefined_term, and (j) district_without_row go to `skeptic_xref`: the skeptic can find, for example, that a cited title is a legitimate alias, that a term is defined in an article we haven't loaded, or that a district's dimensions sit in another table.
 
 #### 6.4 Confidence (derived)
 
